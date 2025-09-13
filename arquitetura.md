@@ -7,8 +7,6 @@
 ```mermaid
 stateDiagram
 
-
-
     1boas_vindas: 1 Boas-vindas
     2retorna_colecao: 2 Retorna coleções de dados
     3dados_brutos: 3 Retorna Dados brutos
