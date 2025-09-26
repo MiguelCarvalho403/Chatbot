@@ -6,7 +6,7 @@ llm_model = "Qwen/Qwen3-1.7B"
 
 def llm_response(prompt):
     
-    response = pipeline("text-generation", model=llm_model, trust_remote_code=True, device='cpu')(prompt, max_length=2048, temperature=0.1, top_p=0.7, repetition_penalty=1.1)[0]['generated_text']
+    response = pipeline("text-generation", model=llm_model, trust_remote_code=True, device=0)(prompt, max_length=2048, temperature=0.1, top_p=0.7, repetition_penalty=1.1)[0]['generated_text']
     #tokenizer = AutoTokenizer.from_pretrained(llm_model, trust_remote_code=True, device='cpu')
     #model = AutoModelForCausalLM.from_pretrained(llm_model, trust_remote_code=True)
     #llm = pipeline("text-generation", model=model, tokenizer=tokenizer, max_length=2048, temperature=0, top_p=0.7, repetition_penalty=1.1)
