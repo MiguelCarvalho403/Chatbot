@@ -1,0 +1,15 @@
+consult_catalogs: "\n        tool_name = \"consult_catalogs\"\n        \n        "
+final_answer: "\n        Name: final_answer\n\n        Description:\n\n        Arguments:\n\
+  \            response: str\n\n        Return:\n            {\n            \"thought\"\
+  : \"I received the search results. Now I must present them to the user.\",\n   \
+  \         \"tool_name\": \"final_answer\",\n            \"parameters\": {\n    \
+  \        \"response\": \"Here is the data I found on hospital infections...\"}\n\
+  \            }\n        "
+open_data_search: "\n        Name: open_data_search\n        Description: Searches\
+  \ for datasets based on keywords.\n\n        Arguments: \n\n        {\n        \"\
+  thought\": \"Brief reasoning about what to do next\",\n        \"tool_name\": \"\
+  open_data_search\",\n        \"parameters\": {\n            \"query\": \"value\"\
+  \n            }\n        }\n\n        Return: \n\n            {id :\n          \
+  \      {\"score:\": score,\n                \"id\": id,\n                \"Titulo:\
+  \ \": title),\n                \"Nome: \": nome,\n                \"Descri\xE7\xE3\
+  o: \": descricao,\n                }\n            }\n        "
