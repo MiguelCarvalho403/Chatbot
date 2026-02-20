@@ -7,55 +7,10 @@ from qdrant_client import QdrantClient
 
 import json
 from icecream import ic
-'''
-Decorator @tool: Transforma funções em objetos da classe StructuredTool, assim podendo ser lidos pelo método bind_tools, informando argumentos de entrada e a saída da função,
-descrição da função(DocString) informada no ato de criação da função.
-'''
 
-def load_vectorstore(model_name="Qwen/Qwen3-Embedding-0.6B", device='cpu'):
+from tools.semantic_search import vectorstore_search
 
-    encoder = SentenceTransformer(model_name, device=device)
-    client = QdrantClient(path="metadados/VectorStore") # Carrega vectorstore em disco
-
-    return encoder, client
-
-encoder, client = load_vectorstore()
-
-#@tool
-def add(a: float, b:float) -> float:
-    '''
-    Realiza a soma de dois números
-    
-    Args:
-        a: primeiro operando
-        b: Segundo operando
-    
-    '''
-    return a+b
-
-#@tool
-def sub(a: float, b:float) -> float:
-    '''
-    Realiza a subtração de dois números
-    
-    Args:
-        a: primeiro operando
-        b: Segundo operando
-    '''
-    
-    return a-b
-
-def get_current_temperature(location: str, unit: str):
-    """
-    Get the current temperature at a location.
-
-    Args:
-        location: The location to get the temperature for, in the format "City, Country"
-        unit: The unit to return the temperature in. (choices: ["celsius", "fahrenheit"])
-    """
-    return 22.
-
-def Final_answer(content: str)-> str:
+def a(content: str)-> str:
     '''
     Retorna Resultado ao usuários
 
@@ -66,48 +21,36 @@ def Final_answer(content: str)-> str:
 
     return content
 
-def catalog_search(query: str) -> list:    
+def search_resources(query: str) -> list:
+
     '''
-    Busca por catalogos no banco de dados abertos do governo federal brasileiro
+    busca por datasets no banco de dados do governo federeal com base na query do usuário
 
     Args:
 
-        query: Requisição do usuário por dados
+        query: Assunto requisitado pelo usuário
+
     '''
+    collection_name = "Recurso_metadados"
 
-    task = "Você é um motor de busca, devolva dados mais relevantes com base na busca"
-
-    query = f"Instrução: {task} Query: {query}"
-    #query_en = await translator.translate(query_pt, src='pt', dest='en')
-
-    #query = query_en.text
-
-    hits = client.query_points(
-        collection_name="Catalogo_metadados",
-        query=encoder.encode(query).tolist(),
-        limit=5,
-    ).points
-
-    catalogs = {} # catalogo temporario retornado, respectivo a cada query individual
+    hits = vectorstore_search(query=query, collection_name=collection_name)
+    
+    resources = {}
 
     for hit in hits:
         id = hit.payload.get('id')
-        if id not in catalogs.keys(): # garante que não há catalogos repitidos
-            catalogs.update({ id :
-                {"score:": hit.score,
-                "id": id,
-                "Titulo: ": hit.payload.get('title'),
-                "Nome: ": hit.payload.get('nome'),
-                "Descrição: ": hit.payload.get('descricao'),
-                #"Nome organização": hit.payload.get('nomeOrganizacao'),
-                #"catalogacao": hit.payload.get('catalogacao'),
-                #"ultimaAtualizacaoDados'": hit.payload.get('ultimaAtualizacaoDados'), 
-                }
-            })
-    catalogs.update(catalogs) # Atualiza catalogos
-
-    return catalogs
-
+    
+        resources.update({id: {
+        "score:": hit.score,
+        "Titulo: ": hit.payload.get('titulo'),
+        "descricap: ": hit.payload.get('descricao'),
+        "formato: ": hit.payload.get('formato'),
+        "id: ": hit.payload.get('id'),
+        "id conjunto: ": hit.payload.get('idConjuntoDados'),
+        "link: ": hit.payload.get('link')
+        }})
+    return resources
+    
 def tool_desc_langchain():
     my_tools = [add, sub]
     ic(render_text_description(my_tools))
@@ -143,9 +86,14 @@ def tool_desc_jinja():
 from transformers.utils import get_json_schema
 
 def tool_desc_trans():
-    tool = get_json_schema(catalog_search) # Mesmo que passa pelo jinja
+    tool = get_json_schema(search_resources) # Mesmo que passa pelo jinja
     ic(tool)
 
+def teste_search_resources():
+    query = "Crimes Rio de janeiro"
+    result = search_resources(query)
+    ic(result)
+
 if __name__ == '__main__':
-    tool_desc_trans()
+    teste_search_resources()
     pass

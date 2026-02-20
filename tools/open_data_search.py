@@ -8,6 +8,28 @@ class OpenDataSearch:
         self.encoder = kwargs.get('encoder')
 
         self.catalogs = {} # Armazena todos os catalogos pesquisados durante a sessão
+    
+    def search_resources(self, query: str) -> list:
+
+        hits = self.client.query_points(
+            collection_name="Recurso_metadados",
+            query=encoder.encode(query).tolist(),
+            limit=200
+        ).points
+        resources = {}
+        for hit in hits:
+            id = hit.payload.get('id')
+            if id not in resources.keys(): # garante que não há catalogos repitidos
+                resources.update({
+                "score:", hit.score,
+                "Titulo: ",hit.payload.get('titulo'),
+                "descricap: ", hit.payload.get('descricao'),
+                "formato: ", hit.payload.get('formato'),
+                "id: ", hit.payload.get('id'),
+                "id conjunto: ", hit.payload.get('idConjuntoDados'),
+                "link: ", hit.payload.get('link')
+                })
+        return resources
 
     def open_data_search(self, query: str) -> list:
         

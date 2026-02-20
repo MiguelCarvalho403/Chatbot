@@ -7,85 +7,26 @@ from langchain_core.messages import AIMessage
 
 import torch
 import gc
-import json
-import time
-import yaml
-import re
-import uuid
+
+from utils import measure_time, read_yaml, jinja_to_langchain, langchain_to_jinja
 
 from icecream import ic
 
-def measure_time(func):
-    def wrapper(*args, **kwargs):
-        start = time.perf_counter()
-        result = func(*args, **kwargs)
-        end = time.perf_counter()
-        print('='*50, "Tempo de execução", "="*50)
-        print(f"Tempo de execução: {end-start}")
-        print('='*100, "\n")
-        return result
-    return wrapper
-
-def read_yaml(path: str)->dict:
-    with open(path, "r") as f:
-        data = yaml.safe_load(f)
-    return data
-
-def langchain_to_jinja(messages: list) -> list:
-    jinja_messages = []
-    for message in messages:
-        if isinstance(message, SystemMessage):
-            jinja_messages.append({'role': 'system', 'content': message.content})
-
-        elif isinstance(message, HumanMessage):
-            jinja_messages.append({'role': 'user', 'content': message.content})
-
-        elif isinstance(message, ToolMessage):
-            jinja_messages.append({'role': 'tool', 'content': message.content})
-
-        elif isinstance(message, AIMessage):
-            jinja_messages.append({'role': 'assistant', 'content': message.content})
-
-    return jinja_messages
-
-def jinja_to_langchain(ai_message: str, think: str) -> AIMessage:
-    tool_pattern = r"<tool_call>.*?</tool_call>"   
-
-    try: # Se a resposta for um tool, o objeto AIMessage as receberá
-    
-        tools = re.findall(tool_pattern, ai_message, flags=re.DOTALL) # extrai tools de ai_message, retorna lista de str
-        tool_calls = []
-
-        for tool in tools:
-            tool_str = re.sub(r"</?tool_call>", "", tool).strip() # retira tags
-            tool_json = json.loads(tool_str)
-            
-            #formato requisitado pelo langgraph e objeto AIMessage para reconhecer tools
-            tool_calls.append({
-                'name': tool_json['name'],
-                'args': tool_json['arguments'],
-                'id': f"call_{uuid.uuid4().hex[:8]}"
-            })
-        ai_message = AIMessage(content=ai_message, 
-                               tool_calls=tool_calls, 
-                               additional_kwargs={"thinking": think})
-        
-        return ai_message
-    
-    except json.JSONDecodeError: # Caso a resposta não seja uma chamada de ferramenta
-        raise Exception("Não é um JSON válido")
-
+model_name = ["Qwen/Qwen3-0.6B", "Qwen/Qwen2.5-0.5B-Instruct"]
+model_name = model_name[0]
 
 class LLM():
-
+ 
     def __init__(self, max_steps=5, history_name="history", **kwargs):
 
     # ============ Models ==================
         # LLM
         self.model_config = read_yaml("config/model_config.yaml")
 
-        self.tokenizer = kwargs.get('tokenizer')
-        self.model = kwargs.get('model')
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForCausalLM.from_pretrained(model_name,
+                                             device_map="auto",
+                                             dtype=torch.float16)
         
         # Embedding model         
         #self.client = kwargs.get('client')
@@ -138,7 +79,7 @@ class LLM():
         return langchain_message
 
 
-from tools.tools import add, sub
+#from tools.tools import add, sub
 
 def teste_call():
 
@@ -169,18 +110,24 @@ def teste_call():
     ic(thinking)
 
 def teste_invoke():
+    def add(a: float, b:float)-> float:
+        '''
+        Soma dois numeros
+        
+        Args:
+            a: Primeiro operando
+            b: Segundo operando
+        '''
 
-    tools = [add, sub]
+    tools = [add]
+    
     models = ["Qwen/Qwen2.5-0.5B-Instruct", "Qwen/Qwen3-0.6B"]
     model_name = models[1]
 
-    model = AutoModelForCausalLM.from_pretrained(model_name)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    llm = LLM(model=model, tokenizer=tokenizer)
+    llm = LLM()
 
     messages = [SystemMessage(content='Você é uma assitente que realiza operações matematicas, responda conforme o requisitado'),
-                HumanMessage(content='se 2+2=x então quanto é x+5?')]
+                HumanMessage(content='quanto é 2 + 2')]
 
     ai_message = llm.invoke(messages=messages, tools=tools)
 
@@ -196,6 +143,9 @@ def teste_parser():
 def teste_lj():
     pass
 
+import torch
+
 if __name__ == '__main__':
     testes = [teste_call, teste_invoke, teste_parser, teste_lj]
     testes[1]()
+    
