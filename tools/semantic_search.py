@@ -19,7 +19,6 @@ def vectorstore_search(collection_name:str, query:str):
 
     return hits
 
-
 if __name__ == "__main__":
     collection_name = "Recurso_metadados"
     query = "infecção"
