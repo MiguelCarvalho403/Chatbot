@@ -1,0 +1,12 @@
+__pychache__
+.deepeval
+chat_history
+config/
+GovData/
+metadados/
+Testes/LogSQLqueries.yaml
+Teste/Teste.ipynb
+Teste/__pychache__
+Estrutura
+saves
+testes.py
