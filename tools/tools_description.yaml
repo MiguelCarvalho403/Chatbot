@@ -1,0 +1,42 @@
+BluePrint:
+  multiply:
+    'type': function,
+    'function':
+      'name': 'multiply'
+      'description': 'A function that multiplies two numbers'
+      'parameters':
+        'type': 'object'
+        'required': ['a', 'b']
+        'properties': 
+          'a': 
+            'type': 'number'
+            'description': 'The first number to multiply'
+          'b':
+            'type': 'number'
+            'description': 'The second number to multiply'
+
+search_resources:
+  'type': function,
+  'function':
+    'name': 'search_resources'
+    'description': 'Busca por datasets no banco de dados do governo federeal com base na query do usuário'
+    'parameters':
+      'type': 'object'
+      'required': ['query']
+      'properties': 
+        'query': 
+          'type': 'string'
+          'description': 'Assunto requisitado pelo usuário'
+
+tabular_query:
+  'type': function,
+  'function':
+    'name': 'tabular_query'
+    'description': 'Responde perguntas sobre dados em formato de tabelas como CSV, XLSX, XML... e bancos de dados relacionais (SQL)'
+    'parameters':
+      'type': 'object'
+      'required': ['query']
+      'properties': 
+        'query': 
+          'type': 'string'
+          'description': 'Pergunta do usuário sobre a tabela'
