@@ -1,33 +1,13 @@
-from langchain_core.tools import tool
-from langchain_core.tools import render_text_description
-from langchain_core.utils.function_calling import convert_to_openai_tool
-
-from sentence_transformers import SentenceTransformer
-from qdrant_client import QdrantClient
-
 import json
+from utils import read_yaml
 from icecream import ic
 
-from tools.semantic_search import vectorstore_search
-
-def a(content: str)-> str:
-    '''
-    Retorna Resultado ao usuários
-
-    Args:
-
-        content: Texto apresentando o resultado obtido
-    '''
-
-    return content
-
 def search_resources(query: str) -> list:
-
+    from semantic_search import vectorstore_search
     '''
-    busca por datasets no banco de dados do governo federeal com base na query do usuário
+    Busca por datasets no banco de dados do governo federeal com base na query do usuário
 
     Args:
-
         query: Assunto requisitado pelo usuário
 
     '''
@@ -50,8 +30,31 @@ def search_resources(query: str) -> list:
         "link: ": hit.payload.get('link')
         }})
     return resources
+
+def tabular_query(query:str, source:dict):
+    '''
+    Responde perguntas sobre dados em formato de tabelas como CSV, XLSX, XML... e bancos de dados relacionais (SQL)
     
+    Args:
+        query: Pergunta do usuário sobre a tabela
+    '''
+
+    source_type = source.get('source_type')
+
+    if source_type == 'link':
+        # download file
+        # load file
+        pass
+    elif source_type == 'path':
+        # load file
+        pass
+    elif source_type == 'data':
+        pass
+
+        
+
 def tool_desc_langchain():
+    from transformers import AutoTokenizer
     my_tools = [add, sub]
     ic(render_text_description(my_tools))
     print(f"Tipo do objeto: {type(add)}") 
@@ -66,28 +69,32 @@ def tool_desc_langchain():
     print("\n--- O JSON QUE VAI PRO LLM ---")
     print(json.dumps(schema_bruto, indent=2))
 
-from transformers import AutoTokenizer
 
 def tool_desc_jinja():
-    my_tools = [add, sub, get_current_temperature]
+    from transformers import AutoTokenizer
     models = ["Qwen/Qwen2.5-0.5B-Instruct", "Qwen/Qwen3-0.6B"]
     model_name = models[1]
+
+    tools = []
+    my_tools = [search_resources]
+    tools_description = read_yaml(path="tools/tools_description.yaml")
+    
+    for tool in my_tools:
+        tools.append(tools_description.get(tool.__name__))
+    
+    ic(tools_description)
+    ic(tools)
 
     messages = [{'role': 'assistant', 'content': 'teste'}]
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     text = tokenizer.apply_chat_template(
         messages, 
-        tools=my_tools, # lista de dicionarios contendo informações de cada tool, segundo padrão da openai
+        tools=tools, # lista de dicionarios contendo informações de cada tool, segundo padrão jinja
         tokenize=False,
         #**self.model_config[self.model.config.name_or_path]['template']
     )
     ic(text)
 
-from transformers.utils import get_json_schema
-
-def tool_desc_trans():
-    tool = get_json_schema(search_resources) # Mesmo que passa pelo jinja
-    ic(tool)
 
 def teste_search_resources():
     query = "Crimes Rio de janeiro"
@@ -95,5 +102,6 @@ def teste_search_resources():
     ic(result)
 
 if __name__ == '__main__':
-    teste_search_resources()
-    pass
+    testes = [tool_desc_jinja, teste_search_resources]
+    testes[0]()
+    
