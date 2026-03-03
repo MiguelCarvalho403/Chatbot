@@ -17,16 +17,19 @@ model_name = model_name[0]
 
 class LLM():
  
-    def __init__(self, max_steps=5, history_name="history", **kwargs):
+    def __init__(self, model, tokenizer, **kwargs):
 
     # ============ Models ==================
         # LLM
         self.model_config = read_yaml("config/model_config.yaml")
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForCausalLM.from_pretrained(model_name,
-                                             device_map="auto",
-                                             dtype=torch.float16)
+        self.model = model
+        self.tokenizer = tokenizer
+
+        #self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        #self.model = AutoModelForCausalLM.from_pretrained(model_name,
+        #                                    device_map="auto",
+        #                                     dtype=torch.float16)
         
         # Embedding model         
         #self.client = kwargs.get('client')
