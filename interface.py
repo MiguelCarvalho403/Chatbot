@@ -1,10 +1,13 @@
 import streamlit as st
 
-from langchain_core.messages import AIMessage, ToolMessage, HumanMessage, BaseMessage
+from langchain_core.messages import AIMessage, ToolMessage, HumanMessage, BaseMessage, SystemMessage
 
 from langgraph.types import Command
 
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 import uuid
+import torch
 import gc
 from icecream import ic
 from graph import chat_graph
@@ -23,19 +26,32 @@ def show_messages(messages: list)-> None:
                 st.markdown(message.content)
             elif isinstance(message, ToolMessage):
                 st.json(message.content)
-            
             elif isinstance(message, HumanMessage):
+                st.markdown(message.content)
+            elif isinstance(message, SystemMessage):
                 st.markdown(message.content)
             else:
                 st.markdown(f"Formato invalido {type(message)}")
 
+llm_model_name = "Qwen/Qwen3-4B-Instruct-2507"
+
 def streamlit_inter():
+    if 'models' not in st.session_state:
+        st.session_state.llm_model = AutoModelForCausalLM().from_pretrained(
+                                            llm_model_name,
+                                            device_map="auto",
+                                            dtype='auto', 
+                                            trust_remote_code=True)
+        st.session_state.tokenizer = AutoTokenizer().from_pretrained(llm_model_name)
+
     if 'messages' not in st.session_state:
         st.session_state.messages = []
 
     if 'config' not in st.session_state:
         st.session_state.config = {'configurable': {
-            'thread_id': uuid.uuid4()
+            'thread_id': uuid.uuid4(),
+            'llm': st.session_state.llm_model, 
+            'tokenizer': st.session_state.tokenizer
             }}
 
     if 'graph' not  in st.session_state:
@@ -65,7 +81,8 @@ def streamlit_inter():
             for chunk in st.session_state.graph.stream({'messages': [prompt]}, st.session_state.config, stream_mode='messages'):
                 st.session_state.messages.append(chunk[0])
         else:
-            for chunk in st.session_state.graph.stream({'messages': [prompt]}, st.session_state.config, stream_mode="messages"):
+            command = Command(resume=prompt)
+            for chunk in st.session_state.graph.stream(command, st.session_state.config, stream_mode="messages"):
                 st.session_state.messages.append(chunk[0])
 
     show_messages(st.session_state.messages)
