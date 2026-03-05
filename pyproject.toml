@@ -1,0 +1,14 @@
+# use pip install -e . para inicializar/atualizar
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Chatbot"
+version = "0.1.0"
+description = "Agente de IA para geração e interpretação de gráficos"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+#include = ["*"] # Transforma em modululo somente as pasta que começão com elementos da lista
