@@ -8,7 +8,7 @@ Qwen/Qwen3-0.6B:
     MinP: 0
   
   generate:
-    max_new_tokens: 2048
+    max_new_tokens: 4096
     temperature: 0.3
     do_sample: True
     use_cache: True
@@ -27,5 +27,40 @@ Qwen/Qwen2.5-0.5B-Instruct:
     do_sample: True
     use_cache: True
 
-google/functiongemma-270m-it: empty
+Qwen/Qwen2.5-Coder-0.5B-Instruct:
+  template: 
+    add_generation_prompt: True
+    enable_thinking: False
+    temperature: 0.3
+  
+  generate:
+    max_new_tokens: 4096
+
+Qwen/Qwen3-4B-Instruct-2507:
+  template:  
+    add_generation_prompt: True
+    enable_thinking: False
+    Topk:  20
+    TopP: 0.95
+    MinP: 0
+  
+  generate:
+    max_new_tokens: 4096
+    temperature: 0.3
+    do_sample: True
+    use_cache: True
+
+cyankiwi/Qwen3-4B-Instruct-2507-AWQ-4bit:
+  template:  
+    add_generation_prompt: True
+    enable_thinking: False
+    Topk:  20
+    TopP: 0.95
+    MinP: 0
+  
+  generate:
+    max_new_tokens: 128
+    temperature: 0.5
+    do_sample: True
+    use_cache: True
 ...
